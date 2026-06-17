@@ -391,7 +391,7 @@ python agent/sentinel.py --story JIRA-1234
 - [x] Repository bootstrap & architecture design
 - [x] Admin scripts: Git workflow & GitHub auth setup
 - [x] `env_check.py` — pre-launch environment validator
-- [ ] Gherkin scenario generator (LLM-based)
+- [x] Gherkin scenario generator (LLM-based)
 - [ ] Playwright MCP integration & test runner
 - [ ] AI failure diagnosis module
 - [ ] HTML / Markdown report generator
