@@ -1,0 +1,104 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# SmokeSentinel — .gitignore
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Work in progress / local drafts ──────────────────────────────────────────
+chantiers/
+
+# ── Environment & secrets ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+secrets.yaml
+secrets.yml
+credentials.json
+credentials.yaml
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# ── Pytest / coverage ─────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# ── agent/ ────────────────────────────────────────────────────────────────────
+# LangChain / LangSmith local trace cache
+agent/.langchain.db
+agent/langchain_cache/
+# Local prompt overrides (keep only the versioned templates)
+agent/prompts/*.local.*
+
+# ── gherkin/ ──────────────────────────────────────────────────────────────────
+# Generated .feature files are committed; raw LLM output drafts are not
+gherkin/output/
+gherkin/*.draft.*
+
+# ── reporter/ ─────────────────────────────────────────────────────────────────
+# Generated reports (built at runtime, not source files)
+reporter/output/
+reports/
+!reports/.gitkeep
+
+# ── notifier/ ─────────────────────────────────────────────────────────────────
+# Local webhook overrides or test payloads
+notifier/*.local.*
+notifier/payloads/
+
+# ── tests/ ────────────────────────────────────────────────────────────────────
+# Playwright runtime artifacts
+test-results/
+playwright-report/
+tests/screenshots/
+tests/videos/
+tests/traces/
+# Local fixture overrides
+tests/fixtures/*.local.*
+
+# ── docker/ ───────────────────────────────────────────────────────────────────
+# Local compose overrides (docker-compose.override.yml is intentionally local)
+docker/docker-compose.override.yml
+docker/*.local.*
+
+# ── scripts/ ──────────────────────────────────────────────────────────────────
+# Scripts are versioned — nothing to exclude here
+# (generated outputs from scripts go to reporter/output/ or reports/)
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+sentinel.log
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace

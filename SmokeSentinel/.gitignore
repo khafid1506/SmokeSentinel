@@ -1,0 +1,90 @@
+# SmokeSentinel — .gitignore
+
+# Work in progress / local drafts
+chantiers/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+secrets.yaml
+secrets.yml
+credentials.json
+credentials.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# agent/
+agent/.langchain.db
+agent/langchain_cache/
+agent/prompts/*.local.*
+
+# gherkin/
+gherkin/output/
+gherkin/*.draft.*
+
+# reporter/
+reporter/output/
+reports/
+!reports/.gitkeep
+
+# notifier/
+notifier/*.local.*
+notifier/payloads/
+
+# tests/
+test-results/
+playwright-report/
+tests/screenshots/
+tests/videos/
+tests/traces/
+tests/fixtures/*.local.*
+
+# docker/
+docker/docker-compose.override.yml
+docker/*.local.*
+
+# Logs
+*.log
+logs/
+sentinel.log
+
+# OS
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace

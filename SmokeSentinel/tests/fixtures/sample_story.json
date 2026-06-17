@@ -1,0 +1,10 @@
+{
+  "key": "SMOKE-1",
+  "summary": "User can log in with valid credentials",
+  "description": "As a registered user, I want to log in so that I can access my dashboard.",
+  "acceptance_criteria": [
+    "Given valid credentials, the user is redirected to the dashboard.",
+    "Given invalid credentials, an error message is shown.",
+    "Given an empty form, the submit button is disabled."
+  ]
+}

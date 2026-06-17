@@ -1,0 +1,1 @@
+"""SmokeSentinel agent package."""

@@ -22,6 +22,7 @@
 - [Scripts](#-scripts)
   - [git_commit_push.py](#git_commit_pushpy--secure-git-commit--push)
   - [github_auth_setup.py](#github_auth_setuppy--github-authentication-setup)
+  - [env_check.py](#env_checkpy--pre-launch-environment-validator)
 - [Getting Started](#-getting-started)
 - [Roadmap](#-roadmap)
 - [Author](#-author)
@@ -106,7 +107,8 @@ SmokeSentinel/
 ├── notifier/                 # Slack & Teams alert dispatcher
 ├── scripts/                  # Developer & admin utility scripts  ◀ see below
 │   ├── git_commit_push.py    # Safe Git commit & push workflow
-│   └── github_auth_setup.py  # GitHub SSH / PAT auth setup
+│   ├── github_auth_setup.py  # GitHub SSH / PAT auth setup
+│   └── env_check.py          # Pre-launch environment validator
 ├── tests/                    # Smoke test templates & fixtures
 ├── docker/                   # Dockerfile & compose files
 ├── .env.example              # Environment variable template
@@ -120,6 +122,12 @@ SmokeSentinel/
 Admin and developer scripts live in `scripts/`. They are **standalone** Python utilities — no external dependencies beyond the standard library — and can be run directly from any terminal.
 
 > More scripts are on the way. Each one follows the same conventions: fully commented, interactive, colored output, safe-by-default.
+
+| Script | Purpose |
+|--------|---------|
+| `git_commit_push.py` | Safe `add → commit → push` with pre-flight checks |
+| `github_auth_setup.py` | Fix GitHub SSH / PAT authentication errors |
+| `env_check.py` | Validate the full environment before launching the agent |
 
 ---
 
@@ -266,6 +274,96 @@ Step 7 — Git remote updated:
 
 ---
 
+### `env_check.py` — Pre-launch Environment Validator
+
+Validates that **everything is in place** before running `python agent/sentinel.py`.
+Catches all blocking issues upfront — no more mid-run crashes on a missing variable or an expired token.
+
+#### What it checks
+
+| Phase | Check |
+|-------|-------|
+| **Python version** | Requires 3.11+ (match statements, modern type hints) |
+| **.env file** | Present · parsable · no syntax errors · `--fix` auto-creates from `.env.example` |
+| **Placeholder detection** | Flags unfilled values: `<YOUR_KEY>`, `xxx`, `changeme`, `REPLACE_ME`… |
+| **Required variables** | Presence + format validation: Anthropic key pattern (`sk-ant-`), URL shape, email, Jira key… |
+| **Optional variables** | Warns if Slack, Teams, OpenAI, LangSmith are absent — does not block |
+| **Network connectivity** | TCP socket check: Anthropic API · GitHub · PyPI · Jira (dynamic from `JIRA_BASE_URL`) |
+| **Python packages** | Import check + minimum version: `langchain`, `anthropic`, `playwright`, `requests`… |
+| **Docker** | Binary in PATH · daemon running |
+| **Playwright browsers** | Chromium (or others) installed via `playwright install` |
+
+#### Usage
+
+```bash
+python scripts/env_check.py                    # standard colored output
+python scripts/env_check.py --strict           # warnings = failures (CI gate)
+python scripts/env_check.py --ci               # compact output for CI logs
+python scripts/env_check.py --fix              # auto-create .env from .env.example
+python scripts/env_check.py --env /path/.env   # explicit .env path
+```
+
+> Exit code `0` = ready to launch · Exit code `1` = blocking issues found.
+> Safe to use as a CI/CD gate step before any test run.
+
+#### Example output
+
+```
+════════════════════════════════════════════════════════════
+  ENV CHECK — SmokeSentinel pre-launch validator
+════════════════════════════════════════════════════════════
+
+── Python version ──────────────────────────────────────────
+  ✔  Python 3.12  (minimum: 3.11)
+
+── .env file ───────────────────────────────────────────────
+  ✔  .env file found and parsed: /home/user/SmokeSentinel/.env  (14 variables)
+
+── Placeholder values ──────────────────────────────────────
+  ✔  No placeholder values detected in .env
+
+── Required environment variables ──────────────────────────
+  ✔  ANTHROPIC_API_KEY  (Anthropic Claude API key)  →  sk-ant-***
+  ✔  JIRA_BASE_URL      (Jira instance base URL)    →  https:***
+  ✔  JIRA_PROJECT_KEY   (Jira project key)          →  SMOKE***
+  ✔  JIRA_TOKEN         (Jira Personal Access Token) →  eyJhb***
+  ✔  JIRA_EMAIL         (Jira account email)         →  khalid***
+  ✔  PLAYWRIGHT_MCP_URL (Playwright MCP server URL)  →  http:/***
+
+── Optional environment variables ──────────────────────────
+  ✔  SLACK_WEBHOOK_URL  (Slack incoming webhook URL)  →  https:***
+  ⚠  OPENAI_API_KEY     — not set (optional, agent will use Claude only)
+  ⚠  LANGCHAIN_API_KEY  — not set (optional, LangSmith tracing disabled)
+
+── External services connectivity ──────────────────────────
+  ✔  Anthropic API  (api.anthropic.com:443)  — reachable
+  ✔  GitHub         (github.com:443)         — reachable
+  ✔  PyPI           (pypi.org:443)           — reachable
+  ✔  Jira           (your-org.atlassian.net) — reachable
+
+── Python packages ─────────────────────────────────────────
+  ✔  langchain     v0.2.1   ✔
+  ✔  anthropic     v0.25.0  ✔
+  ✔  playwright    v1.44.0  ✔
+  ✔  python-dotenv — installed
+  ✔  requests      v2.31.0  ✔
+
+── Docker ──────────────────────────────────────────────────
+  ✔  Docker version 26.1.0
+  ✔  Docker daemon — running
+
+── Playwright browsers ─────────────────────────────────────
+  ✔  Playwright — browsers found
+
+════════════════════════════════════════════════════════════
+  RESULTS  passed=22  warnings=2  failed=0
+
+  ✔  Environment is ready — safe to launch SentinelMCP. (with warnings)
+```
+
+
+---
+
 ## 🚀 Getting Started
 
 > Full setup instructions coming soon. The agent is under active development.
@@ -292,6 +390,7 @@ python agent/sentinel.py --story JIRA-1234
 
 - [x] Repository bootstrap & architecture design
 - [x] Admin scripts: Git workflow & GitHub auth setup
+- [x] `env_check.py` — pre-launch environment validator
 - [ ] Gherkin scenario generator (LLM-based)
 - [ ] Playwright MCP integration & test runner
 - [ ] AI failure diagnosis module
