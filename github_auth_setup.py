@@ -6,18 +6,24 @@ EDUCATIONAL ADMIN SCRIPT
 =========================
 
 Purpose:
-    Help fix the following Git error when pushing to GitHub over HTTPS:
+    Help fix the following Git errors when pushing to GitHub:
 
+    1. HTTPS password error:
         remote: Invalid username or token. Password authentication is not supported
         fatal: Authentication failed for 'https://github.com/...'
 
-Why this error happens:
-    GitHub removed support for password authentication on Git operations
-    (HTTPS push/pull). You now need either:
-        1. A Personal Access Token (PAT) used INSTEAD of a password, or
-        2. SSH key-based authentication (no password/token needed at all)
+    2. Multi-account SSH conflict:
+        ERROR: Permission to khafid1506/SmokeSentinel.git denied to khafidmedheb.
+        fatal: Could not read from remote repository.
 
-This script walks through BOTH solutions, step by step, with comments
+Why these errors happen:
+    - GitHub removed password auth for Git operations (use PAT or SSH instead).
+    - When multiple GitHub accounts share the same machine, Git may pick the
+      wrong SSH key (and thus the wrong account). The fix is to create a
+      dedicated SSH key per account and route each remote through a specific
+      SSH Host alias defined in ~/.ssh/config.
+
+This script walks through THREE solutions, step by step, with comments
 explaining what each line does and why it's needed.
 
 Usage:
@@ -304,6 +310,252 @@ def setup_ssh():
 
 
 # ----------------------------------------------------------------------
+# SOLUTION 3: Multi-account SSH (fix "denied to <wrong_user>" errors)
+# ----------------------------------------------------------------------
+
+def setup_multi_account_ssh():
+    """
+    Fix the error:
+        ERROR: Permission to khafid1506/SmokeSentinel.git denied to khafidmedheb.
+
+    Root cause: when several GitHub accounts coexist on the same machine,
+    SSH always picks the first key it finds (usually id_ed25519 or id_rsa),
+    which is registered under account A — even if you want to push to a
+    repo owned by account B.
+
+    Solution: create a dedicated SSH key for each account, declare an SSH
+    Host alias per account in ~/.ssh/config, and point each Git remote at
+    the matching alias.  SSH will then use the right key automatically.
+
+    This function handles:
+        1. Generating the new dedicated key
+        2. Displaying the public key to add on GitHub
+        3. Writing / updating ~/.ssh/config
+        4. Testing the connection with the new alias
+        5. Updating the repo's Git remote to use the alias
+    """
+    print("\n=== SOLUTION 3: Multi-account SSH (fix wrong-account error) ===\n")
+    print("This solution creates a DEDICATED SSH key for a secondary GitHub")
+    print("account so that Git stops authenticating with the wrong account.\n")
+
+    # ------------------------------------------------------------------ #
+    # Step 1 — Collect information about the secondary account
+    # ------------------------------------------------------------------ #
+    print("--- Step 1: information about the secondary account ---\n")
+
+    # The GitHub username that owns the target repository.
+    github_user = input(
+        "GitHub username of the SECONDARY account (e.g. khafid1506): "
+    ).strip()
+
+    # The email address associated with that GitHub account.
+    # It is only used as a human-readable label embedded in the SSH key.
+    email = input(
+        f"Email address linked to the '{github_user}' GitHub account: "
+    ).strip()
+
+    # The SSH Host alias we will create in ~/.ssh/config.
+    # Using a name like "github-<username>" avoids any collision with the
+    # default "github.com" entry that belongs to the primary account.
+    host_alias = f"github-{github_user}"
+
+    # ------------------------------------------------------------------ #
+    # Step 2 — Generate a dedicated SSH key pair
+    # ------------------------------------------------------------------ #
+    print(f"\n--- Step 2: generating SSH key for '{github_user}' ---\n")
+
+    ssh_dir = Path.home() / ".ssh"
+
+    # Build a file name that makes the owner obvious at a glance,
+    # e.g.  ~/.ssh/id_ed25519_khafid1506
+    key_name = f"id_ed25519_{github_user}"
+    key_path = ssh_dir / key_name
+
+    # Create ~/.ssh with strict permissions if it doesn't exist yet.
+    # mode=0o700 means only the current user can enter the directory,
+    # which is a hard requirement for SSH to consider the folder trustworthy.
+    ssh_dir.mkdir(mode=0o700, exist_ok=True)
+
+    if key_path.exists():
+        print(f"⚠️  Key already exists: {key_path}")
+        overwrite = input("Overwrite it? [y/N]: ").strip().lower()
+        if overwrite != "y":
+            print("Keeping the existing key.")
+        else:
+            # -t ed25519  -> modern elliptic-curve algorithm (faster & more
+            #                secure than RSA-4096 for this use case)
+            # -C email    -> human-readable comment embedded in the key
+            # -f key_path -> explicit output path so we don't overwrite the
+            #                default key used by the primary account
+            # -N ""       -> empty passphrase for automation convenience;
+            #                remove the -N "" if you want to set one
+            run([
+                "ssh-keygen",
+                "-t", "ed25519",
+                "-C", email,
+                "-f", str(key_path),
+                "-N", "",
+            ])
+    else:
+        run([
+            "ssh-keygen",
+            "-t", "ed25519",
+            "-C", email,
+            "-f", str(key_path),
+            "-N", "",
+        ])
+
+    # ------------------------------------------------------------------ #
+    # Step 3 — Add the key to the SSH agent
+    # ------------------------------------------------------------------ #
+    print(f"\n--- Step 3: loading the key into the SSH agent ---\n")
+
+    # The SSH agent holds decrypted private keys in memory.
+    # Adding our new key means SSH will automatically try it when
+    # connecting to the matching host alias.
+    if os.name != "nt":
+        # On Linux/Mac, make sure the agent is running first.
+        run(["bash", "-c", 'eval "$(ssh-agent -s)"'], check=False)
+
+    run(["ssh-add", str(key_path)], check=False)
+
+    # Confirm the key is now listed in the agent.
+    print("\nKeys currently loaded in the SSH agent:")
+    run(["ssh-add", "-l"], check=False, capture=True)
+
+    # ------------------------------------------------------------------ #
+    # Step 4 — Display the public key for manual copy to GitHub
+    # ------------------------------------------------------------------ #
+    print(f"\n--- Step 4: add the public key to GitHub account '{github_user}' ---\n")
+
+    pub_key_path = Path(str(key_path) + ".pub")
+
+    if pub_key_path.exists():
+        print(f"Public key content ({pub_key_path}):\n")
+        print(pub_key_path.read_text())
+        print("\nSteps on GitHub (must be logged in as '{github_user}'):")
+        print("  1. Go to: https://github.com/settings/ssh/new")
+        print("  2. Title: give it a recognisable name (e.g. 'my-laptop-khafid1506')")
+        print("  3. Key type: Authentication Key")
+        print("  4. Key: paste the public key above")
+        print("  5. Click 'Add SSH key'\n")
+        input("Press Enter once the key has been added on GitHub...")
+    else:
+        print(f"⚠️  Could not find public key at {pub_key_path}. Skipping display.")
+
+    # ------------------------------------------------------------------ #
+    # Step 5 — Write / update ~/.ssh/config
+    # ------------------------------------------------------------------ #
+    print(f"\n--- Step 5: updating ~/.ssh/config ---\n")
+
+    config_path = ssh_dir / "config"
+
+    # The block we want to insert (or check for).
+    # Each directive is explained inline:
+    #   Host          -> the alias name used in SSH / Git URLs
+    #   HostName      -> the real server hostname (always github.com)
+    #   User          -> the SSH login name GitHub always expects ("git")
+    #   IdentityFile  -> the private key to use for THIS alias only
+    #   IdentitiesOnly-> tell SSH to ONLY try this key, not any others
+    #                    in the agent (prevents the wrong-account problem)
+    new_block = (
+        f"\n# GitHub account: {github_user}\n"
+        f"Host {host_alias}\n"
+        f"  HostName github.com\n"
+        f"  User git\n"
+        f"  IdentityFile {key_path}\n"
+        f"  IdentitiesOnly yes\n"
+    )
+
+    # Read the existing config (if any) to avoid adding duplicate entries.
+    existing_content = config_path.read_text() if config_path.exists() else ""
+
+    if f"Host {host_alias}" in existing_content:
+        print(f"ℹ️  An entry for 'Host {host_alias}' already exists in {config_path}.")
+        print("    Review it manually if the connection test fails later.")
+    else:
+        # Append our new block to the config file.
+        # We open in append mode ("a") so existing entries are preserved.
+        with open(config_path, "a") as f:
+            f.write(new_block)
+        print(f"✅ Added the following block to {config_path}:")
+        print(new_block)
+
+    # ~/.ssh/config must be readable only by the owner (mode 600),
+    # otherwise SSH will refuse to use it.
+    config_path.chmod(0o600)
+    print(f"✅ Permissions on {config_path} set to 600.")
+
+    # ------------------------------------------------------------------ #
+    # Step 6 — Test the connection with the new alias
+    # ------------------------------------------------------------------ #
+    print(f"\n--- Step 6: testing SSH connection as '{github_user}' ---\n")
+
+    # We use the ALIAS (host_alias) instead of "github.com" so that SSH
+    # picks up the IdentityFile we defined for this account.
+    # -T disables pseudo-terminal allocation (GitHub doesn't need a shell).
+    # -o StrictHostKeyChecking=accept-new avoids the interactive "Are you
+    #    sure you want to continue connecting?" prompt on first connection.
+    test = run(
+        ["ssh", "-T", f"git@{host_alias}", "-o", "StrictHostKeyChecking=accept-new"],
+        check=False,
+        capture=True,
+    )
+
+    output = (test.stdout or "") + (test.stderr or "")
+    print(output)
+
+    if "successfully authenticated" in output:
+        print(f"\n✅ SSH connection successful — authenticated as '{github_user}'!")
+    else:
+        print(
+            f"\n⚠️  Could not confirm a successful connection for '{github_user}'.\n"
+            "Common fixes:\n"
+            f"  - Make sure the public key was added to the '{github_user}' "
+            "GitHub account (step 4).\n"
+            f"  - Run: ssh-add {key_path}\n"
+            f"  - Check ~/.ssh/config contains a 'Host {host_alias}' block.\n"
+        )
+
+    # ------------------------------------------------------------------ #
+    # Step 7 — Update the Git remote to use the SSH alias
+    # ------------------------------------------------------------------ #
+    print(f"\n--- Step 7: updating the Git remote ---\n")
+    print("Current remote(s):")
+    print(get_remote_url())
+
+    update = input(
+        "\nUpdate the 'origin' remote of this repo to use the SSH alias? [y/N]: "
+    ).strip().lower()
+
+    if update == "y":
+        repo = input(
+            f"GitHub repo path for '{github_user}' (e.g. {github_user}/SmokeSentinel): "
+        ).strip()
+
+        # The SSH URL uses the HOST ALIAS instead of "github.com".
+        # This is the key trick: Git will ask SSH to connect to "github-khafid1506",
+        # and SSH will look up that alias in ~/.ssh/config and use the correct key.
+        ssh_url = f"git@{host_alias}:{repo}.git"
+
+        run(["git", "remote", "set-url", "origin", ssh_url])
+
+        print("\n✅ Remote updated. New remote(s):")
+        print(get_remote_url())
+
+        print(f"\nYou can now push with:  git push")
+        print(
+            f"\nNote: for any OTHER repo belonging to '{github_user}', use:\n"
+            f"  git remote set-url origin git@{host_alias}:<repo_path>.git"
+        )
+    else:
+        print(
+            f"\nSkipped. To do it manually later:\n"
+            f"  git remote set-url origin git@{host_alias}:{github_user}/<repo>.git"
+        )
+
+
+# ----------------------------------------------------------------------
 # Main entry point
 # ----------------------------------------------------------------------
 
@@ -318,9 +570,10 @@ def main():
     print("=" * 60)
 
     print("\nChoose an option:")
-    print("  1 - Personal Access Token (PAT) - quick fix")
-    print("  2 - SSH - recommended long-term solution")
-    print("  3 - Both")
+    print("  1 - Personal Access Token (PAT)        — quick HTTPS fix")
+    print("  2 - SSH (single account)               — recommended long-term solution")
+    print("  3 - SSH multi-account (fix 'denied to <wrong_user>' error)")
+    print("  4 - Options 1 + 2 (PAT then SSH)")
     print("  0 - Exit")
 
     # input() always returns a string, so we compare against string values.
@@ -331,6 +584,8 @@ def main():
     elif choice == "2":
         setup_ssh()
     elif choice == "3":
+        setup_multi_account_ssh()
+    elif choice == "4":
         setup_pat()
         setup_ssh()
     else:
