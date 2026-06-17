@@ -1,0 +1,88 @@
+{
+  "feature": "Online Shopping Cart Management",
+  "feature_file": "C:\\kallitests\\SmokeSentinel\\SmokeSentinel\\tests\\features\\JIRA-1234.feature",
+  "scenario_count": 3,
+  "tags": [
+    "@smoke",
+    "@shopping_cart",
+    "@happy_path",
+    "@error",
+    "@shopping"
+  ],
+  "scenarios": [
+    {
+      "title": "Adding Items Successfully to the Cart",
+      "tags": [
+        "@smoke",
+        "@shopping_cart",
+        "@happy_path"
+      ],
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I have navigated to a product page on the website"
+        },
+        {
+          "keyword": "And",
+          "text": "there are no items in my shopping cart currently"
+        },
+        {
+          "keyword": "When",
+          "text": "I add multiple products of different categories into my cart by clicking 'Add to Cart' button for each item individually"
+        },
+        {
+          "keyword": "Then",
+          "text": "all added items should appear in my shopping cart and be correctly assigned with their respective quantities, prices, and images."
+        },
+        {
+          "keyword": "And",
+          "text": "the total price displayed on the screen after adding these items should match the sum calculated from individual product costs including taxes if applicable."
+        }
+      ]
+    },
+    {
+      "title": "Adding Items to Cart Fails Due to Insufficient Stock",
+      "tags": [
+        "@smoke",
+        "@shopping_cart",
+        "@error"
+      ],
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I have navigated to a popular item that is currently out of stock on the website"
+        },
+        {
+          "keyword": "When",
+          "text": "I attempt to add this product into my shopping cart by clicking 'Add to Cart' button for it individually, multiple times if necessary"
+        },
+        {
+          "keyword": "Then",
+          "text": "an error message should appear indicating insufficient stock and preventing me from adding these items to my cart."
+        }
+      ]
+    },
+    {
+      "title": "Attempted End Session with Items in the Cart Fails Due to Unfinished Checkout Process",
+      "tags": [
+        "@smoke",
+        "@shopping",
+        "@error"
+      ],
+      "steps": [
+        {
+          "keyword": "Given",
+          "text": "I have added a few products into my shopping cart and navigated back from checkout page without completing it"
+        },
+        {
+          "keyword": "When",
+          "text": "I attempt to log out or navigate away during this unfinished process by clicking 'End Sesssion' button on the top right corner of the screen, multiple times if necessary"
+        },
+        {
+          "keyword": "Then",
+          "text": "an error message should appear indicating that items in my cart are not saved and prompting me to complete checkout before logging out."
+        }
+      ]
+    }
+  ]
+}
