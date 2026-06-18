@@ -411,7 +411,7 @@ python agent/sentinel.py --story JIRA-1234
 Senior SDET & AI Engineer — specialized in autonomous QA agents (HealthTech / BioTech)
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-khalid--hafid--medheb-0077B5?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/khalid-hafid-medheb-40451aa8/)
-[![GitHub](https://img.shields.io/badge/GitHub-khafidmedheb-181717?style=flat-square&logo=github)](https://github.com/khafidmedheb)
+[![GitHub](https://img.shields.io/badge/GitHub-khafidmedheb-181717?style=flat-square&logo=github)](https://github.com/khafid1506)
 [![Kallitests](https://img.shields.io/badge/Org-Kallitests-6e40c9?style=flat-square)](https://github.com/khafidmedheb)
 
 ---
