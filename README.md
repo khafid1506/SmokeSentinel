@@ -3,7 +3,7 @@
 > **Autonomous QA agent for AI-driven smoke testing.**
 > From Jira user story to Gherkin scenarios, Playwright execution via MCP, AI failure diagnosis, and clear reporting with Slack/Teams alerts.
 
-[![Status](https://img.shields.io/badge/status-WIP-orange?style=flat-square)](https://github.com/khafid1506/SmokeSentinel)
+[![Status](https://img.shields.io/badge/status-WIP-orange?style=flat-square)](https://github.com/kallitests/SmokeSentinel)
 [![Python](https://img.shields.io/badge/python-3.11+-blue?style=flat-square&logo=python)](https://python.org)
 [![LangChain](https://img.shields.io/badge/LangChain-agent-blueviolet?style=flat-square)](https://langchain.com)
 [![Playwright](https://img.shields.io/badge/Playwright-MCP-green?style=flat-square&logo=playwright)](https://playwright.dev)
@@ -171,7 +171,7 @@ python scripts/git_commit_push.py --path /path/to/your/repo
 ── Pre-flight checks ───────────────────────────────
   ✔  Git detected: git version 2.43.0
   ✔  Valid Git repository
-  ✔  Remote 'origin': git@github-khafid1506:khafid1506/SmokeSentinel.git
+  ✔  Remote 'origin': git@github-kallitests:kallitests/SmokeSentinel.git
   ✔  Current branch: main
   ⚠  You are on protected branch 'main'. Continue anyway? [o/N]: o
 
@@ -186,7 +186,7 @@ python scripts/git_commit_push.py --path /path/to/your/repo
   Message: feat: add secure git commit-push admin script
 
 ── Summary ─────────────────────────────────────────
-  Remote : git@github-khafid1506:khafid1506/SmokeSentinel.git
+  Remote : git@github-khafid1506:kallitests/SmokeSentinel.git
   Branch : main
   Commit : "feat: add secure git commit-push admin script"
   Files  : 2
@@ -203,8 +203,8 @@ python scripts/git_commit_push.py --path /path/to/your/repo
 
 ── Post-push ────────────────────────────────────────
   ✔  Last pushed commit: a3f2c91
-  ℹ  View commit : https://github.com/khafid1506/SmokeSentinel/commit/a3f2c91
-  ℹ  View branch : https://github.com/khafid1506/SmokeSentinel/tree/main
+  ℹ  View commit : https://github.com/kallitests/SmokeSentinel/commit/a3f2c91
+  ℹ  View branch : https://github.com/kallitests/SmokeSentinel/tree/main
 ```
 
 ---
@@ -221,7 +221,7 @@ remote: Invalid username or token. Password authentication is not supported
 fatal: Authentication failed for 'https://github.com/...'
 
 # Multi-account SSH error
-ERROR: Permission to khafid1506/SmokeSentinel.git denied to khafidmedheb.
+ERROR: Permission to kallitests/SmokeSentinel.git denied to kallitests.
 fatal: Could not read from remote repository.
 ```
 
@@ -246,30 +246,30 @@ python scripts/github_auth_setup.py
 === SOLUTION 3: Multi-account SSH ===
 
 Step 1 — Secondary account info
-  GitHub username : khafid1506
-  Email           : khafid1506@example.com
+  GitHub username : kallitests
+  Email           : kallitests@example.com
 
-Step 2 — Generating SSH key: ~/.ssh/id_ed25519_khafid1506
+Step 2 — Generating SSH key: ~/.ssh/id_ed25519_kallitests
 
 Step 3 — Loading key into SSH agent
   ✔  Key loaded.
 
 Step 4 — Public key to add on GitHub (Settings → SSH keys):
-  ssh-ed25519 AAAA... khafid1506@example.com
+  ssh-ed25519 AAAA... kallitests@example.com
 
 Step 5 — ~/.ssh/config updated:
-  Host github-khafid1506
+  Host github-kallitests
     HostName github.com
     User git
-    IdentityFile ~/.ssh/id_ed25519_khafid1506
+    IdentityFile ~/.ssh/id_ed25519_kallitests
     IdentitiesOnly yes
 
 Step 6 — Testing connection:
-  Hi khafid1506! You've successfully authenticated.
+  Hi kallitests! You've successfully authenticated.
   ✔  SSH connection successful!
 
 Step 7 — Git remote updated:
-  origin  git@github-khafid1506:khafid1506/SmokeSentinel.git
+  origin  git@github-kallitests:kallitests/SmokeSentinel.git
 ```
 
 ---
@@ -370,7 +370,7 @@ python scripts/env_check.py --env /path/.env   # explicit .env path
 
 ```bash
 # Clone
-git clone git@github-khafid1506:khafid1506/SmokeSentinel.git
+git clone git@github-kallitests:kallitests/SmokeSentinel.git
 cd SmokeSentinel
 
 # Environment
@@ -411,8 +411,8 @@ python agent/sentinel.py --story JIRA-1234
 Senior SDET & AI Engineer — specialized in autonomous QA agents (HealthTech / BioTech)
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-khalid--hafid--medheb-0077B5?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/khalid-hafid-medheb-40451aa8/)
-[![GitHub](https://img.shields.io/badge/GitHub-khafidmedheb-181717?style=flat-square&logo=github)](https://github.com/khafid1506)
-[![Kallitests](https://img.shields.io/badge/Org-Kallitests-6e40c9?style=flat-square)](https://github.com/khafidmedheb)
+[![GitHub](https://img.shields.io/badge/GitHub-kallitests-181717?style=flat-square&logo=github)](https://github.com/kallitests)
+[![Kallitests](https://img.shields.io/badge/Org-Kallitests-6e40c9?style=flat-square)](https://github.com/kallitests)
 
 ---
 
